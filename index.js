@@ -32,7 +32,7 @@ mongoose.connect(dbURL,
     .catch(err => console.log('DB connection error...', err));
 
 const store = MongoStore.create({
-    mongoUrl: dbUrl,
+    mongoUrl: dbURL,
     touchAfter: 24 * 60 * 60,
     crypto: {
         secret: 'abcde'
