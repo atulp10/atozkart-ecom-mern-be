@@ -31,24 +31,25 @@ mongoose.connect(dbURL,
     .then(() => console.log('MERN DB connected.'))
     .catch(err => console.log('DB connection error...', err));
 
-const store = MongoStore.create({
-    mongoUrl: dbURL,
-    touchAfter: 24 * 60 * 60,
-    crypto: {
-        secret: 'abcde'
-    }
-});
-
-store.on('error',function(e){
-    console.log('Mongo Session Store Error',e);
-    
-})
 
 app.use(cors({
     origin: 'http://localhost:5173',  // Your React frontend URL
     // methods: ['GET', 'POST'],
     credentials: true  // Allow credentials (cookies)
 }));
+
+// const store = MongoStore.create({
+//     mongoUrl: dbURL,
+//     touchAfter: 24 * 60 * 60,
+//     crypto: {
+//         secret: 'abcde'
+//     }
+// });
+
+// store.on('error', function (e) {
+//     console.log('Mongo Session Store Error', e);
+// })
+
 // // Handle preflight OPTIONS request explicitly
 // app.options('*', cors({
 //     origin: 'http://localhost:5173',
@@ -58,7 +59,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use(session({
-    store,
+    // store,
     secret: 'abcde',
     resave: false,
     saveUninitialized: true,
@@ -66,8 +67,7 @@ app.use(session({
         httpOnly: true,
         maxAge: 1000 * 60 * 60 * 24 * 7,
         // sameSite: 'none',
-        secure: false,
-        // secure: process.env.NODE_ENV === 'production'
+        secure: process.env.NODE_ENV === 'production'
     }
 }))
 app.use(flash());
