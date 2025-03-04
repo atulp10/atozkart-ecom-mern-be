@@ -9,16 +9,18 @@ import session from "express-session";
 import passport from "passport";
 import localStrategy from "passport-local";
 import flash from "connect-flash";
+import MongoStore from "connect-mongo";
 import cookieParser from "cookie-parser";
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-const app = express();
 import productRoutes from "./routes/productRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import User from "./model/userModel.js";
 import { isLoggedIn } from "./middlewares.js";
 
-const dbURL=process.env.DB_URL;
+const app = express();
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+const dbURL = process.env.DB_URL;
 // 'mongodb://127.0.0.1:27017/MERN1'
 mongoose.connect(dbURL,
     {
@@ -28,6 +30,19 @@ mongoose.connect(dbURL,
 )
     .then(() => console.log('MERN DB connected.'))
     .catch(err => console.log('DB connection error...', err));
+
+const store = MongoStore.create({
+    mongoUrl: dbUrl,
+    touchAfter: 24 * 60 * 60,
+    crypto: {
+        secret: 'abcde'
+    }
+});
+
+store.on('error',function(e){
+    console.log('Mongo Session Store Error',e);
+    
+})
 
 app.use(cors({
     origin: 'http://localhost:5173',  // Your React frontend URL
@@ -41,7 +56,9 @@ app.use(cors({
 // }));
 app.use(express.json());
 app.use(cookieParser());
+
 app.use(session({
+    store,
     secret: 'abcde',
     resave: false,
     saveUninitialized: true,
@@ -59,7 +76,7 @@ app.use(passport.session());
 // passport.use(new localStrategy({usernameField:'email'},User.authenticate()));
 passport.use(new localStrategy({
     usernameField: 'email',
-    passwordField: 'password', 
+    passwordField: 'password',
 }, async (email, password, done) => {
     try {
         const user = await User.findOne({ email: email }).exec();
@@ -81,7 +98,7 @@ passport.use(new localStrategy({
 //     console.log('Serializing user:', user); // Debugging
 //     done(null, user._id);
 //     // console.log('serialized: ',req.passport);
-    
+
 // });
 
 // passport.deserializeUser(async (id, done) => {
@@ -108,10 +125,10 @@ app.use((req, res, next) => {
     console.log('Session ID:', req.sessionID);  // Log session ID
     console.log('req.seesion.passport: ', req.session.passport);
     console.log('User:', req.user);
-    console.log('req.cookies: ',req.cookies);
+    console.log('req.cookies: ', req.cookies);
     console.log('Response Headers:', res.getHeaders());
-    
-    next();  
+
+    next();
 });
 app.use('/products', productRoutes);
 app.use('/orders', orderRoutes);
@@ -133,7 +150,7 @@ app.get('/', (req, res) => {
 
 
 
-app.post('/sendemail',isLoggedIn, async (req, res) => {
+app.post('/sendemail', isLoggedIn, async (req, res) => {
     const { email, name, orderedItems, totalAmount,
         shippingAddress, paymentMode, orderStatus, paymentStatus,
         orderDate, orderTime, createdAt } = req.body;
@@ -164,7 +181,7 @@ app.post('/sendemail',isLoggedIn, async (req, res) => {
     }
 })
 
-app.post('/create-payment-intent',isLoggedIn, async (req, res) => {
+app.post('/create-payment-intent', isLoggedIn, async (req, res) => {
     console.log(req.body) //{amount:10000}
     try {
         const paymentIntents = await stripe.paymentIntents.create({
@@ -181,7 +198,7 @@ app.post('/create-payment-intent',isLoggedIn, async (req, res) => {
 });
 
 app.all('*', (req, res) => {
-    return res.status(400).json({message:'Bad request...'});
+    return res.status(400).json({ message: 'Bad request...' });
 })
 
 app.use((err, req, res, next) => {
