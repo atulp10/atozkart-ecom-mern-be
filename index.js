@@ -35,7 +35,8 @@ mongoose.connect(dbURL,
 app.use(cors({
     origin: 'https://atozkart.vercel.app', //'http://localhost:5173',  // Your React frontend URL
     // methods: ['GET', 'POST'],
-    credentials: true  // Allow credentials (cookies)
+    credentials: true,  // Allow credentials (cookies)
+    exposedHeaders: ["set-cookie"]
 }));
 
 // const store = MongoStore.create({
