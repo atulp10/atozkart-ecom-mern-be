@@ -31,6 +31,7 @@ mongoose.connect(dbURL,
     .then(() => console.log('MERN DB connected.'))
     .catch(err => console.log('DB connection error...', err));
 
+app.set("trust proxy", true);
 
 app.use(cors({
     origin: 'https://atozkart.vercel.app', //'http://localhost:5173',  // Your React frontend URL
@@ -68,7 +69,7 @@ app.use(session({
         httpOnly: false,
         maxAge: 1000 * 60 * 60 * 24 * 7,
         // sameSite: 'none',
-        sameSite:(process.env.NODE_ENV === 'production')?'none':'',
+        sameSite: (process.env.NODE_ENV === 'production') ? 'none' : '',
         secure: process.env.NODE_ENV === 'production'
     }
 }))
