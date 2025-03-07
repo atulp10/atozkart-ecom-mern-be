@@ -33,7 +33,7 @@ mongoose.connect(dbURL,
 
 
 app.use(cors({
-    origin: 'http://localhost:5173',  // Your React frontend URL
+    origin: 'https://atozkart.vercel.app', //'http://localhost:5173',  // Your React frontend URL
     // methods: ['GET', 'POST'],
     credentials: true  // Allow credentials (cookies)
 }));
