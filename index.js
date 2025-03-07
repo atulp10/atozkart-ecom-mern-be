@@ -68,8 +68,7 @@ app.use(session({
         maxAge: 1000 * 60 * 60 * 24 * 7,
         // sameSite: 'none',
         sameSite:(process.env.NODE_ENV === 'production')?'none':'',
-        // secure: process.env.NODE_ENV === 'production'
-        secure:false
+        secure: process.env.NODE_ENV === 'production'
     }
 }))
 app.use(flash());
