@@ -33,7 +33,7 @@ mongoose.connect(dbURL,
 
 
 app.use(cors({
-    origin: 'https://atozkart.vercel.app',  // Your React frontend URL
+    origin: 'http://localhost:5173',  // Your React frontend URL
     // methods: ['GET', 'POST'],
     credentials: true  // Allow credentials (cookies)
 }));
@@ -66,7 +66,8 @@ app.use(session({
     cookie: {
         httpOnly: true,
         maxAge: 1000 * 60 * 60 * 24 * 7,
-        sameSite: 'none',
+        // sameSite: 'none',
+        sameSite:(process.env.NODE_ENV === 'production')?'none':'',
         secure: process.env.NODE_ENV === 'production'
     }
 }))
