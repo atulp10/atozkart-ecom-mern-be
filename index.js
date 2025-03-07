@@ -34,8 +34,8 @@ mongoose.connect(dbURL,
 app.set("trust proxy", true);
 
 app.use(cors({
-    origin: 'https://atozkart.vercel.app', //'http://localhost:5173',  // Your React frontend URL
-    // methods: ['GET', 'POST'],
+    origin:(process.env.NODE_ENV === 'production')?'https://atozkart.vercel.app':'http://localhost:5173',
+    //'http://localhost:5173',  // Your React frontend URL
     credentials: true,  // Allow credentials (cookies)
     exposedHeaders: ["set-cookie"]
 }));
@@ -52,11 +52,6 @@ app.use(cors({
 //     console.log('Mongo Session Store Error', e);
 // })
 
-// // Handle preflight OPTIONS request explicitly
-// app.options('*', cors({
-//     origin: 'http://localhost:5173',
-//     credentials: true
-// }));
 app.use(express.json());
 app.use(cookieParser());
 
@@ -90,7 +85,7 @@ passport.use(new localStrategy({
         if (!isMatch.user) {
             return done(null, false, { message: 'Incorrect password.' });
         }
-        console.log('User authenticated:', user); // Debugging
+        console.log('User authenticated:', user); 
         return done(null, user);
     } catch (err) {
         return done(err);
@@ -125,12 +120,11 @@ app.use((req, res, next) => {
     console.log('*************************');
     console.log('*************************');
     console.log('Session:', req.session);
-    console.log('Session ID:', req.sessionID);  // Log session ID
+    console.log('Session ID:', req.sessionID);  
     console.log('req.seesion.passport: ', req.session.passport);
     console.log('User:', req.user);
     console.log('req.cookies: ', req.cookies);
     console.log('Response Headers:', res.getHeaders());
-
     next();
 });
 app.use('/products', productRoutes);
