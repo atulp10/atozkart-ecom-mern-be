@@ -1,9 +1,12 @@
-class AppError extends Error{
-    constructor(message,status){
-        super();
-        this.message=message;
-        this.status=status;
-    }
+class AppError extends Error {
+  constructor(message, statusCode = 500, code = 'INTERNAL_ERROR', details) {
+    super(message);
+    this.name = 'AppError';
+    this.statusCode = statusCode;
+    this.code = code;
+    this.details = details;
+    Error.captureStackTrace(this, this.constructor);
+  }
 }
 
 export default AppError;

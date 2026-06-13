@@ -1,17 +1,17 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
-const productSchema=new mongoose.Schema({
-    title:{type:String, required:true},
-    price:{type:Number,required:true},
-    category:{type:String,required:true},
-    stock:{type:Number,required:true},
-    image:String,
-    brand:String,
-    description:String,
-    createdAt:String,
-    updatedAt:String,
-});
+export const PRODUCT_CATEGORIES = ['Electronics', 'Fashion', 'Beauty', 'Home', 'Books', 'Grocery', 'Art & Craft'];
 
-const Product=mongoose.model('Product',productSchema);
+const productSchema = new mongoose.Schema({
+  title: { type: String, required: true, trim: true, minlength: 2, maxlength: 120 },
+  price: { type: Number, required: true, min: 0.01, max: 10000000 },
+  category: { type: String, required: true, enum: PRODUCT_CATEGORIES },
+  stock: { type: Number, required: true, min: 0, validate: Number.isInteger },
+  image: { type: String, required: true, trim: true, maxlength: 2048 },
+  imagePublicId: { type: String, trim: true },
+  brand: { type: String, trim: true, maxlength: 80, default: '' },
+  description: { type: String, trim: true, maxlength: 2000, default: '' },
+}, { timestamps: true });
 
+const Product = mongoose.model('Product', productSchema);
 export default Product;

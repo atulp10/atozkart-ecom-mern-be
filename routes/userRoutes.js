@@ -1,55 +1,55 @@
-import express from "express";
-import { catchAsync } from "../utils/catchAsync.js";
-import User from "../model/userModel.js";
-import passport from "passport";
+import express from 'express';
+import passport from 'passport';
+import User from '../model/userModel.js';
+import { catchAsync } from '../utils/catchAsync.js';
+import { validate } from '../utils/validation.js';
+import { loginSchema, registerSchema } from '../schemas/requests.js';
+import { toUserDto } from '../utils/userDto.js';
+import { authLimiter } from '../middlewares/security.js';
+import { isLoggedIn } from '../middlewares.js';
+import AppError from '../utils/AppError.js';
+import { getConfig } from '../config/env.js';
+
 const router = express.Router();
 
-export default router;
+router.post('/register', authLimiter, catchAsync(async (req, res, next) => {
+  const data = validate(registerSchema, req.body);
+  const user = await User.register(new User({ email: data.email, username: data.username, role: 'User' }), data.password);
+  req.login(user, (error) => {
+    if (error) return next(error);
+    return res.status(201).json(toUserDto(user));
+  });
+}));
 
-router.post('/register', catchAsync(async (req, res, next) => {
-    const { email, username, password, createdAt, role } = req.body;
-    let user = new User({ email, username, createdAt, role });
-    user = await User.register(user, password);
-    // res.status(200).send({message:'User registered'})
-
-    req.login(user, err => {
-      if (err) return next(err);
-      return res.status(200).json(req.user);
-    })
- }))
-
-router.post('/login', (req, res, next) => {
-  passport.authenticate('local', (err, user, info) => {
-    if (err) {
-      return next(err); // Handle error
-    }
-    if (!user) {
-      return res.status(401).send(info.message); // Send error message to the frontend
-    }
-    req.login(user, (err) => {
-      if (err) {
-        return next(err); // Handle error
-      }
-      return res.status(200).json(req.user);
+router.post('/login', authLimiter, (req, res, next) => {
+  req.body = validate(loginSchema, req.body);
+  passport.authenticate('local', (error, user) => {
+    if (error) return next(error);
+    if (!user) return next(new AppError('Invalid email or password', 401, 'INVALID_CREDENTIALS'));
+    return req.login(user, (loginError) => {
+      if (loginError) return next(loginError);
+      return res.status(200).json(toUserDto(user));
     });
   })(req, res, next);
 });
 
-router.get('/logout', (req, res, next) => {
-  console.log('/logout route');
-  console.log(req.user);
-  req.logout(function (err) { // used for logout, Passport method on req object
-    if (err) {
-      console.log('Logout error:', err);
-      return res.status(500).json({ message: 'Logout failed', error: err.message });
-    }
-    req.session.destroy((err) => {
-      if (err) {
-        console.error('Session destruction error:', err);
-        return res.status(500).json({ message: 'Failed to destroy session' });
-      }
-      res.clearCookie('connect.sid'); // Clears session cookie (if applicable)
-      res.status(200).json({ message: 'Logged out successfully' });
-    })
-  })
-})
+router.get('/me', isLoggedIn, (req, res) => res.json(toUserDto(req.user)));
+
+router.post('/logout', isLoggedIn, (req, res, next) => {
+  req.logout((logoutError) => {
+    if (logoutError) return next(logoutError);
+    return req.session.destroy((sessionError) => {
+      if (sessionError) return next(sessionError);
+      const config = getConfig();
+      res.clearCookie(config.sessionName, {
+        httpOnly: true,
+        secure: config.isProduction,
+        sameSite: config.isProduction ? 'none' : 'lax',
+        path: '/',
+      });
+      return res.status(204).end();
+    });
+  });
+});
+
+export default router;
