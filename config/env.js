@@ -2,7 +2,6 @@ const requiredInProduction = [
   'DB_URL',
   'SESSION_SECRET',
   'STRIPE_SECRET_KEY',
-  'STRIPE_WEBHOOK_SECRET',
   'EMAIL',
   'PWD',
   'CLOUDINARY_CLOUD_NAME',
