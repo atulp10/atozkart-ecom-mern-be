@@ -1,46 +1,37 @@
-import mongoose from "mongoose";
-import Product from "../model/productModel.js";
 import 'dotenv/config';
+import Product from '../model/productModel.js';
+import { connectDatabase, disconnectDatabase } from '../config/database.js';
 
-// 'mongodb://127.0.0.1:27017/MERN1'
-const dbURL = process.env.DB_URL;
-mongoose.connect(dbURL,
-    {
-        family: 4, // Force IPv4
-        serverSelectionTimeoutMS: 30000,
-    }
-)
-    .then(() => console.log('MERN DB connected.'))
-    .catch(err => console.log('DB connection error...', err));
+const categories = ['Electronics', 'Fashion', 'Beauty', 'Home', 'Books', 'Grocery', 'Art & Craft'];
+const brands = ['Adidas', 'P&G', 'Dell', 'Seiko', 'Sony', 'LG', 'Everest'];
+const images = [
+  'https://m.media-amazon.com/images/I/51brdXeugJL._SX679_.jpg',
+  'https://m.media-amazon.com/images/I/61++T836jiL._SL1500_.jpg',
+  'https://m.media-amazon.com/images/I/61QC7BpBq7L._SL1500_.jpg',
+  'https://m.media-amazon.com/images/I/71Kyp-Z7JOL._SL1500_.jpg',
+  'https://m.media-amazon.com/images/I/81XbFaNe2LL._SL1500_.jpg',
+];
 
-const categories = ['Electronics', 'Fashion', 'Beauty', 'Home', 'Books', 'Grocery', 'Art & Craft']
-const brand = ['Adidas', 'P&G', 'Dell', 'Seiko', 'Sony', 'LG', 'Everest'];
-const images = ['https://m.media-amazon.com/images/I/51brdXeugJL._SX679_.jpg', 'https://m.media-amazon.com/images/I/61++T836jiL._SL1500_.jpg', 'https://m.media-amazon.com/images/I/61QC7BpBq7L._SL1500_.jpg',
-    'https://m.media-amazon.com/images/I/71Kyp-Z7JOL._SL1500_.jpg', 'https://m.media-amazon.com/images/I/81XbFaNe2LL._SL1500_.jpg', 'https://m.media-amazon.com/images/I/51HrJO56iFL._SL1500_.jpg',
-    'https://m.media-amazon.com/images/I/71l2-gWOnpL._SL1500_.jpg', 'https://m.media-amazon.com/images/I/71swO3GTDwL._SL1500_.jpg', 'https://m.media-amazon.com/images/I/51NKPZx0a6L._SL1500_.jpg',
-    'https://m.media-amazon.com/images/I/71iKNJ6rVIL._SL1000_.jpg', 'https://m.media-amazon.com/images/I/71D-9au0J1L._SX695_.jpg'
-]
-
-const seedData = async () => {
-    try {
-        await Product.deleteMany({});
-        for (let i = 0; i < 10; i++) {
-            const p = new Product({
-                title: `Product-${i + 1}`,
-                price: Math.ceil(Math.random() * 200),
-                category: categories[Math.floor(Math.random() * categories.length)],
-                stock: Math.ceil(Math.random() * 50),
-                brand: brand[Math.floor(Math.random() * brand.length)],
-                image: images[Math.floor(Math.random() * images.length)],
-                createdAt: new Date(),
-                updatedAt: ''
-            });
-            await p.save();
-        }
-    }
-    catch (err) { console.log(err) }
-
+async function seedData() {
+  await connectDatabase();
+  await Product.deleteMany({});
+  await Product.insertMany(Array.from({ length: 10 }, (_, index) => ({
+    title: `Product-${index + 1}`,
+    price: Math.ceil(Math.random() * 200),
+    category: categories[Math.floor(Math.random() * categories.length)],
+    stock: Math.ceil(Math.random() * 50),
+    brand: brands[Math.floor(Math.random() * brands.length)],
+    image: images[Math.floor(Math.random() * images.length)],
+    description: 'Seed product for local development.',
+  })));
 }
 
-seedData().then(() => mongoose.connection.close())
-    .catch(err => console.log('Closing error:', err));
+try {
+  await seedData();
+  console.log('Seeded 10 products.');
+} catch (error) {
+  console.error('Database seed failed:', error.message);
+  process.exitCode = 1;
+} finally {
+  await disconnectDatabase();
+}

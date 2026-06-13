@@ -1,34 +1,11 @@
-import cloudinary from "cloudinary";
-import { CloudinaryStorage } from "multer-storage-cloudinary";
+import { v2 as cloudinary } from 'cloudinary';
+import { getConfig } from '../config/env.js';
 
-// Configuring my cloudinary account here.
+const config = getConfig();
 cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_KEY,
-    api_secret: process.env.CLOUDINARY_SECRET,
-});
-// console.log("Cloudinary Config:", cloudinary.config());
-
-// Configuring cloudinary storage
-const storage = new CloudinaryStorage({
-    cloudinary: cloudinary,
-    params: {
-        folder: 'MERN1',
-        allowedFormats: ['png', 'jpg', 'jpeg', 'gif', 'jfif', 'webp'],
-        // public_id: (req, file) => `${Date.now()}-${file.originalname}`, // Add filename processing
-    },
+  cloud_name: config.cloudinaryCloudName,
+  api_key: config.cloudinaryKey,
+  api_secret: config.cloudinarySecret,
 });
 
-
-// const storage = new CloudinaryStorage({
-//     cloudinary: cloudinary,
-//     params: async (req, file) => {
-//         return {
-//             folder: "MERN1",
-//             format: file.mimetype.split("/")[1], // Automatically get format
-//             public_id: `${Date.now()}-${file.originalname.replace(/\s+/g, '-')}`,
-//         };
-//     },
-// });
-
-export { cloudinary, storage };
+export { cloudinary };

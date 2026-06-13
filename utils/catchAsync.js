@@ -1,8 +1,1 @@
-export const catchAsync = (fn) => {
-    return function (req, res, next) {
-        fn(req, res, next).catch(e => {
-            console.error("Async Error:", e);
-            next(e);
-        })
-    }
-}
+export const catchAsync = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
