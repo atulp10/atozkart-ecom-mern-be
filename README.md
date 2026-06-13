@@ -17,7 +17,9 @@ npm run seed
 npm start
 ```
 
-Production startup validates all required environment variables. `ALLOWED_ORIGINS` accepts a comma-separated list of trusted frontend origins.
+Production startup validates all required environment variables. `SESSION_SECRET` must be a long random value and must be configured in every deployed Vercel environment. `ALLOWED_ORIGINS` accepts a comma-separated list of trusted frontend origins.
+
+`STRIPE_WEBHOOK_SECRET` is optional at startup, but Stripe webhook requests return `503` until it is configured. Add the signing secret from the Stripe webhook endpoint before relying on asynchronous payment status updates.
 
 ## API notes
 
