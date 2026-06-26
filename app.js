@@ -27,6 +27,13 @@ mongoose.set('strictQuery', true);
 
 app.set('trust proxy', 1);
 app.disable('x-powered-by');
+app.use((req, res, next) => {
+  const cloudfrontProto = req.headers['cloudfront-forwarded-proto'];
+  if (cloudfrontProto && !req.headers['x-forwarded-proto']) {
+    req.headers['x-forwarded-proto'] = cloudfrontProto;
+  }
+  next();
+});
 app.use(helmet());
 app.use(cors({
   origin(origin, callback) {
@@ -43,6 +50,18 @@ app.use(requireTrustedOrigin);
 app.get('/', (req, res) => res.json({ name: 'AtoZKart API', status: 'ok' }));
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 app.get('/ready', (req, res) => res.status(mongoose.connection.readyState === 1 ? 200 : 503).json({ database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected' }));
+app.get('/debug/headers', (req, res) => {
+  res.json({
+    secure: req.secure,
+    protocol: req.protocol,
+    host: req.headers.host,
+    origin: req.headers.origin || null,
+    forwardedProto: req.headers['x-forwarded-proto'] || null,
+    cloudfrontForwardedProto: req.headers['cloudfront-forwarded-proto'] || null,
+    forwardedFor: req.headers['x-forwarded-for'] || null,
+    cookie: req.headers.cookie || null,
+  });
+});
 app.use(catchDatabaseConnection);
 
 const sessionOptions = {
