@@ -47,7 +47,7 @@ app.use(express.json({ limit: '100kb' }));
 app.use(express.urlencoded({ extended: false, limit: '100kb' }));
 app.use(apiLimiter);
 app.use(requireTrustedOrigin);
-app.get('/', (req, res) => res.json({ name: 'AtoZKart API', status: 'ok' }));
+app.get('/', (req, res) => res.json({ name: 'AtoZKart API', status: 'ok', deployment: 'github-actions' }));
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 app.get('/ready', (req, res) => res.status(mongoose.connection.readyState === 1 ? 200 : 503).json({ database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected' }));
 app.get('/debug/headers', (req, res) => {
